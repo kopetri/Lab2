@@ -14,6 +14,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,7 +34,6 @@ public class MainActivity extends ActionBarActivity {
     BluetoothAdapter mBtAdapter;
     private ArrayList mArrayAdapter;
     private static int BLUETOOTH_ENABLED = 14;
-    int qwert = 999;
 
 
     @Override
@@ -44,19 +44,27 @@ public class MainActivity extends ActionBarActivity {
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBtAdapter == null) {
             popupDialog(this, "Fehler", "Kein Bluetooth verfügbar");
+            this.finish();
         }
 
 
         // enable bluetooth if disabled
         if (!mBtAdapter.isEnabled()) {
+            Log.i("BLUETOOTH","BTAdapter was not enabled");
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, BLUETOOTH_ENABLED);
-
+        } else{
+            Log.i("BLUETOOTH","BTAdapter is enabled");
         }
 
         Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
         startActivity(discoverableIntent);
+        if(mBtAdapter.isDiscovering()){
+            Log.i("BLUETOOTH","is Discovering");
+        } else {
+            Log.i("BLUETOOTH","is not Discovering");
+        }
 
     }
 
@@ -92,12 +100,6 @@ public class MainActivity extends ActionBarActivity {
         //explicit intent ( > Android 5.0)
         Intent gestureBindIntent = new Intent(this,IGestureRecognitionService.class);
         bindService(gestureBindIntent,mGestureConn,Context.BIND_AUTO_CREATE);
-
-
-
-
-
-
     }
 
     //unbind service
@@ -222,7 +224,8 @@ public class MainActivity extends ActionBarActivity {
 
         StringBuilder sb = new StringBuilder();
 
-        System.out.println("Bluetoothgeräte Anzahl: " + String.valueOf(mArrayAdapter.size()));
+        Log.i("Info", "Bluetoothgeräte Anzahl: " + String.valueOf(mArrayAdapter.size()));
+
 
         for(int i =0;i<mArrayAdapter.size();i++){
             System.out.println(mArrayAdapter.get(i));
@@ -232,13 +235,16 @@ public class MainActivity extends ActionBarActivity {
 
 
     }
-    /*protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.i("onActivityResult","called");
         if (requestCode == BLUETOOTH_ENABLED) {
             if (resultCode == RESULT_CANCELED) {
                 popupDialog(this, "Bluetooth", "Bluetooth muss aktiviert werden um die Anwendung zu nützen");
                 this.finish();
             }
-
+            if(resultCode == RESULT_OK){
+                Log.i("BLUETOOTH","RESULT_OK");
+            }
         }
-    }*/
+    }
 }
