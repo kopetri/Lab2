@@ -33,6 +33,7 @@ public class MainActivity extends ActionBarActivity {
     BluetoothAdapter mBtAdapter;
     private ArrayList mArrayAdapter;
     private static int BLUETOOTH_ENABLED = 14;
+    int qwert = 999;
 
 
     @Override
