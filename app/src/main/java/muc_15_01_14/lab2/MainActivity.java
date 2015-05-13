@@ -86,11 +86,12 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Intent gestureBindIntent =
-                new Intent("de.dfki.ccaal.gestures.GESTURE_RECOGNIZER");
-        bindService(gestureBindIntent,
-                mGestureConn,
-                Context.BIND_AUTO_CREATE);
+        //implicit intent ( < Android 5.0 )
+        //Intent gestureBindIntent = new Intent("de.dfki.ccaal.gestures.GESTURE_RECOGNIZER");
+
+        //explicit intent ( > Android 5.0)
+        Intent gestureBindIntent = new Intent(this,IGestureRecognitionService.class);
+        bindService(gestureBindIntent,mGestureConn,Context.BIND_AUTO_CREATE);
 
 
 
