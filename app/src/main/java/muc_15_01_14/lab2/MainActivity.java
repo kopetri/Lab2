@@ -3,12 +3,10 @@ package muc_15_01_14.lab2;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -18,9 +16,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import de.dfki.ccaal.gestures.Distribution;
@@ -35,11 +35,28 @@ public class MainActivity extends ActionBarActivity {
     private ArrayList mArrayAdapter;
     private static int BLUETOOTH_ENABLED = 14;
 
+    //GUI Variables
+    private ListView availableDevicesList;
+    private ArrayList <String> availableDevicesStringArray;
+    private ArrayAdapter<String> availableDevicesAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //GUI
+        availableDevicesList = (ListView)findViewById(R.id.list_availableDevices);
+
+        availableDevicesStringArray = new ArrayList<String>();
+        for (int i = 0 ;i<2;i++){
+            availableDevicesStringArray.add("Device: " + i);
+        }
+        availableDevicesAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, availableDevicesStringArray);
+        availableDevicesList.setAdapter(availableDevicesAdapter);
+
+
 
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBtAdapter == null) {
@@ -72,6 +89,7 @@ public class MainActivity extends ActionBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
         return true;
     }
 
@@ -83,10 +101,9 @@ public class MainActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if (id == R.id.action_info) {
+            popupDialog(this,"Über","Mobile & Ubiquitous Computing\nÜbung 2 - Mimicry Game\n\nTheresa Hirzle\nSebastian Hardwig\nDavid Lehr");
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -151,8 +168,7 @@ public class MainActivity extends ActionBarActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            TextView text = (TextView) findViewById(R.id.text_gesture);
-                            text.setText(gesture + " " + String.valueOf(distance));
+                            Log.i("Identified Gesture",gesture + " " + String.valueOf(distance));
                         }
                     });
 
@@ -228,10 +244,9 @@ public class MainActivity extends ActionBarActivity {
 
 
         for(int i =0;i<mArrayAdapter.size();i++){
-            System.out.println(mArrayAdapter.get(i));
-            sb.append(mArrayAdapter.get(i));
+            Log.i("Available Device", mArrayAdapter.get(i).toString());
         }
-        ((TextView)findViewById(R.id.text_devices)).setText(sb.toString());
+
 
 
     }
@@ -246,5 +261,16 @@ public class MainActivity extends ActionBarActivity {
                 Log.i("BLUETOOTH","RESULT_OK");
             }
         }
+    }
+
+
+
+    //GUI
+    public void addAvailableDevices(List availableDevices){
+        for(int i=0; i<availableDevices.size();i++)
+        {
+            availableDevicesStringArray.add(availableDevices.toString());
+        }
+        availableDevicesAdapter.notifyDataSetChanged();
     }
 }
