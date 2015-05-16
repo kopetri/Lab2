@@ -9,13 +9,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/layout_main"
-        android:rowCount="2"
+        android:rowCount="3"
         android:columnCount="1">
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="187dp"
+            android:layout_height="wrap_content"
             android:id="@+id/layout_newGame">
 
             <TextView
@@ -31,8 +31,30 @@
                 android:layout_height="wrap_content"
                 android:text="Neues Spiel starten"
                 android:id="@+id/btn_startNewGame"
-                android:layout_gravity="center_horizontal" />
+                android:layout_gravity="center_horizontal"
+                android:onClick="clickStartNewGame" />
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Name" />
+
+            <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:ems="10"
+                android:id="@+id/etxt_username"
+                android:layout_weight="1" />
         </LinearLayout>
 
         <LinearLayout
@@ -66,6 +88,8 @@
                 android:background="@color/button_material_light"/>
 
         </LinearLayout>
+
+
 
     </GridLayout>
 

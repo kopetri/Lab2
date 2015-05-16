@@ -17,6 +17,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import java.util.ArrayList;
@@ -30,6 +31,11 @@ import de.dfki.ccaal.gestures.IGestureRecognitionService;
 
 public class MainActivity extends ActionBarActivity {
 
+    public static final String MASTER_KEY="ismaster";
+    public static  final String MASTER_USER_KEY="mastername";
+    public static  final String CLIENT_USER_KEY="clientname";
+
+
     de.dfki.ccaal.gestures.IGestureRecognitionService mRecService;
     BluetoothAdapter mBtAdapter;
     private ArrayList mArrayAdapter;
@@ -37,7 +43,7 @@ public class MainActivity extends ActionBarActivity {
 
     //GUI Variables
     private ListView availableDevicesList;
-    private ArrayList <String> availableDevicesStringArray;
+    private ArrayList<String> availableDevicesStringArray;
     private ArrayAdapter<String> availableDevicesAdapter;
 
 
@@ -47,15 +53,14 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         //GUI
-        availableDevicesList = (ListView)findViewById(R.id.list_availableDevices);
+        availableDevicesList = (ListView) findViewById(R.id.list_availableDevices);
 
         availableDevicesStringArray = new ArrayList<String>();
-        for (int i = 0 ;i<2;i++){
+        for (int i = 0; i < 2; i++) {
             availableDevicesStringArray.add("Device: " + i);
         }
         availableDevicesAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, availableDevicesStringArray);
         availableDevicesList.setAdapter(availableDevicesAdapter);
-
 
 
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -67,20 +72,20 @@ public class MainActivity extends ActionBarActivity {
 
         // enable bluetooth if disabled
         if (!mBtAdapter.isEnabled()) {
-            Log.i("BLUETOOTH","BTAdapter was not enabled");
+            Log.i("BLUETOOTH", "BTAdapter was not enabled");
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, BLUETOOTH_ENABLED);
-        } else{
-            Log.i("BLUETOOTH","BTAdapter is enabled");
+        } else {
+            Log.i("BLUETOOTH", "BTAdapter is enabled");
         }
 
         Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
         startActivity(discoverableIntent);
-        if(mBtAdapter.isDiscovering()){
-            Log.i("BLUETOOTH","is Discovering");
+        if (mBtAdapter.isDiscovering()) {
+            Log.i("BLUETOOTH", "is Discovering");
         } else {
-            Log.i("BLUETOOTH","is not Discovering");
+            Log.i("BLUETOOTH", "is not Discovering");
         }
 
     }
@@ -102,7 +107,7 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_info) {
-            popupDialog(this,"Über","Mobile & Ubiquitous Computing\nÜbung 2 - Mimicry Game\n\nTheresa Hirzle\nSebastian Hardwig\nDavid Lehr");
+            popupDialog(this, "Über", "Mobile & Ubiquitous Computing\nÜbung 2 - Mimicry Game\n\nTheresa Hirzle\nSebastian Hardwig\nDavid Lehr");
         }
         return super.onOptionsItemSelected(item);
     }
@@ -115,8 +120,8 @@ public class MainActivity extends ActionBarActivity {
         //Intent gestureBindIntent = new Intent("de.dfki.ccaal.gestures.GESTURE_RECOGNIZER");
 
         //explicit intent ( > Android 5.0)
-        Intent gestureBindIntent = new Intent(this,IGestureRecognitionService.class);
-        bindService(gestureBindIntent,mGestureConn,Context.BIND_AUTO_CREATE);
+        Intent gestureBindIntent = new Intent(this, IGestureRecognitionService.class);
+        bindService(gestureBindIntent, mGestureConn, Context.BIND_AUTO_CREATE);
     }
 
     //unbind service
@@ -168,7 +173,7 @@ public class MainActivity extends ActionBarActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Log.i("Identified Gesture",gesture + " " + String.valueOf(distance));
+                            Log.i("Identified Gesture", gesture + " " + String.valueOf(distance));
                         }
                     });
 
@@ -201,16 +206,16 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
-
-    public void find_Devices(View view){
+    public void find_Devices(View view) {
         mArrayAdapter = new ArrayList();
 
         Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
 
-        if(pairedDevices.size()>0){
-            for(BluetoothDevice device : pairedDevices){
+        if (pairedDevices.size() > 0) {
+            for (BluetoothDevice device : pairedDevices) {
 
-                System.out.println(device.getAddress());System.out.println(device.getName());
+                System.out.println(device.getAddress());
+                System.out.println(device.getName());
                 System.out.println(device.getUuids());
 
             }
@@ -237,38 +242,48 @@ public class MainActivity extends ActionBarActivity {
         mBtAdapter.startDiscovery();*/
 
 
-
         StringBuilder sb = new StringBuilder();
 
         Log.i("Info", "Bluetoothgeräte Anzahl: " + String.valueOf(mArrayAdapter.size()));
 
 
-        for(int i =0;i<mArrayAdapter.size();i++){
+        for (int i = 0; i < mArrayAdapter.size(); i++) {
             Log.i("Available Device", mArrayAdapter.get(i).toString());
         }
 
 
-
     }
+
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.i("onActivityResult","called");
+        Log.i("onActivityResult", "called");
         if (requestCode == BLUETOOTH_ENABLED) {
             if (resultCode == RESULT_CANCELED) {
                 popupDialog(this, "Bluetooth", "Bluetooth muss aktiviert werden um die Anwendung zu nützen");
                 this.finish();
             }
-            if(resultCode == RESULT_OK){
-                Log.i("BLUETOOTH","RESULT_OK");
+            if (resultCode == RESULT_OK) {
+                Log.i("BLUETOOTH", "RESULT_OK");
             }
         }
     }
 
 
-
     //GUI
-    public void addAvailableDevices(List availableDevices){
-        for(int i=0; i<availableDevices.size();i++)
-        {
+    public void clickStartNewGame(View view) {
+        Intent intent = new Intent(getApplicationContext(), GameOverviewActivity.class);
+        intent.putExtra(MASTER_KEY,true);
+        String name = ((EditText)findViewById(R.id.etxt_username)).getText().toString();
+        if(name.trim().equals("")){
+            name = "You";
+        }
+        intent.putExtra(MASTER_USER_KEY,name);
+        intent.putExtra(CLIENT_USER_KEY,"Challenger");
+        startActivity(intent);
+    }
+
+
+    public void addAvailableDevices(List availableDevices) {
+        for (int i = 0; i < availableDevices.size(); i++) {
             availableDevicesStringArray.add(availableDevices.toString());
         }
         availableDevicesAdapter.notifyDataSetChanged();
