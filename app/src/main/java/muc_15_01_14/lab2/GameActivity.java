@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -47,18 +48,7 @@ public class GameActivity extends ActionBarActivity {
                         @Override
                         public void run() {
                             Log.i("Identified Gesture", gesture + " " + String.valueOf(distance));
-                            if (gesture.equals(chooseGesture)) {
-                                ((TextView) findViewById(R.id.txt_countdownInt)).setText("Wait...");
-                                ((ImageView) findViewById(R.id.img_feedback)).setImageResource(R.mipmap.succeed);
-                                if (master) {
-                                    ((Button) findViewById(R.id.btn_finishGame)).setVisibility(View.VISIBLE);
-                                    ((Button) findViewById(R.id.btn_nextRound)).setVisibility(View.VISIBLE);
-                                }
-                                unregisterGestureDetection();
-                            } else {
-                                ((ImageView) findViewById(R.id.img_feedback)).setImageResource(R.mipmap.failed);
-                            }
-
+                            analyseGesture(gesture);
                         }
                     });
 
@@ -114,7 +104,9 @@ public class GameActivity extends ActionBarActivity {
         // ((Button) findViewById(R.id.btn_nextRound)).setEnabled(false);
 
 
-        Countdown((int) Math.ceil(Math.random() * 9+1));
+        if (master) {
+            Countdown((int) Math.ceil(Math.random() * 9 + 1));
+        }
     }
 
     @Override
@@ -151,7 +143,6 @@ public class GameActivity extends ActionBarActivity {
         //explicit intent ( > Android 5.0)
         Intent gestureBindIntent = new Intent(this, IGestureRecognitionService.class);
         bindService(gestureBindIntent, mGestureConn, Context.BIND_AUTO_CREATE);
-        Log.i("GameActivity","Run Gesturedetector");
     }
 
 
@@ -207,25 +198,45 @@ public class GameActivity extends ActionBarActivity {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             getIntent().putExtra(STATUS_KEY, "exitRound");
             setResult(Activity.RESULT_OK, getIntent());
+            if (countDownTimer != null) {
+                countDownTimer.cancel();
+                countDownTimer = null;
+            }
             this.finish();
             return true;
         }
         return super.onKeyDown(keyCode, event);
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        analyseGesture(chooseGesture);
+        return super.onTouchEvent(event);
+    }
 
+    private void analyseGesture(String gesture) {
+        if (gesture.equals(chooseGesture)) {
+            ((TextView) findViewById(R.id.txt_result)).setText("Wait...");
+            ((ImageView) findViewById(R.id.img_feedback)).setImageResource(R.mipmap.succeed);
+            if (master) {
+                ((Button) findViewById(R.id.btn_finishGame)).setVisibility(View.VISIBLE);
+                ((Button) findViewById(R.id.btn_nextRound)).setVisibility(View.VISIBLE);
+            }
+            unregisterGestureDetection();
+        } else {
+            ((ImageView) findViewById(R.id.img_feedback)).setImageResource(R.mipmap.failed);
+        }
+    }
 
-
-
-
-   private void  unregisterGestureDetection(){
+    private void unregisterGestureDetection() {
         try {
             if (mRecService != null) {
                 mRecService.unregisterListener(IGestureRecognitionListener.
                         Stub.asInterface(mGestureListenerStub));
             }
 
-        mRecService = null;unbindService(mGestureConn);
+            mRecService = null;
+            unbindService(mGestureConn);
         } catch (android.os.RemoteException | IllegalArgumentException e) {
             e.printStackTrace();
         }

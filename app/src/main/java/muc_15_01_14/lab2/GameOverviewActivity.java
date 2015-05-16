@@ -77,9 +77,6 @@ public class GameOverviewActivity extends ActionBarActivity {
 
 
     public void click_leaveGame(View view) {
-        if(countDownTimer!=null){
-            countDownTimer.cancel();
-        }
         leaveGame();
     }
 
@@ -93,7 +90,12 @@ public class GameOverviewActivity extends ActionBarActivity {
     }
 
     private void leaveGame() {
+        if(countDownTimer!=null){
+            countDownTimer.cancel();
+            countDownTimer=null;
+        }
         this.finish();
+
     }
 
     private void updateDataOnScreen() {

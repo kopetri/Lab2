@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -54,6 +55,23 @@ public class MainActivity extends ActionBarActivity {
 
         //GUI
         availableDevicesList = (ListView) findViewById(R.id.list_availableDevices);
+        availableDevicesList.setClickable(true);
+        availableDevicesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+                Log.i("Clicked Item", "" + position);
+                Intent intent = new Intent(getApplicationContext(), GameOverviewActivity.class);
+                intent.putExtra(MASTER_KEY,false);
+                intent.putExtra(MASTER_USER_KEY,"Challenger");
+                String name = ((EditText)findViewById(R.id.etxt_username)).getText().toString();
+                if(name.trim().equals("")){
+                    name = "You";
+                }
+                intent.putExtra(CLIENT_USER_KEY,name);
+                startActivity(intent);
+            }
+        });
 
         availableDevicesStringArray = new ArrayList<String>();
         for (int i = 0; i < 2; i++) {
@@ -280,6 +298,8 @@ public class MainActivity extends ActionBarActivity {
         intent.putExtra(CLIENT_USER_KEY,"Challenger");
         startActivity(intent);
     }
+
+
 
 
     public void addAvailableDevices(List availableDevices) {
