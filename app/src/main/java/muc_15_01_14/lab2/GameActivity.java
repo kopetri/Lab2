@@ -7,28 +7,19 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.graphics.Bitmap;
-import android.media.Image;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.support.v4.*;
-import android.support.v4.BuildConfig;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import java.util.List;
-
 import de.dfki.ccaal.gestures.Distribution;
 import de.dfki.ccaal.gestures.IGestureRecognitionListener;
 import de.dfki.ccaal.gestures.IGestureRecognitionService;
