@@ -14,7 +14,22 @@
         android:layout_height="wrap_content"
         android:text="New Text"
         android:id="@+id/text_devices"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="120dp" />
+        android:layout_below="@+id/text_gesture"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start Server"
+        android:id="@+id/start_server_button"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinner"
+        android:layout_below="@+id/start_server_button"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>
