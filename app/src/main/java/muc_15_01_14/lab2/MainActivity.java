@@ -42,7 +42,7 @@ public class MainActivity extends ActionBarActivity {
     private ArrayList mArrayAdapter;
     private static int BLUETOOTH_ENABLED = 14;
 
-    //GUI Variables
+    //Variables for client representation on Gui
     private ListView availableDevicesList;
     private ArrayList<String> availableDevicesStringArray;
     private ArrayAdapter<String> availableDevicesAdapter;
@@ -53,7 +53,7 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //GUI
+        // Client list an on click listener for the clients
         availableDevicesList = (ListView) findViewById(R.id.list_availableDevices);
         availableDevicesList.setClickable(true);
         availableDevicesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -74,6 +74,7 @@ public class MainActivity extends ActionBarActivity {
         });
 
         availableDevicesStringArray = new ArrayList<String>();
+        // two test devices
         for (int i = 0; i < 2; i++) {
             availableDevicesStringArray.add("Device: " + i);
         }
@@ -123,9 +124,9 @@ public class MainActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_info) {
-            popupDialog(this, "Über", "Mobile & Ubiquitous Computing\nÜbung 2 - Mimicry Game\n\nTheresa Hirzle\nSebastian Hardwig\nDavid Lehr");
+            //
+            popupDialog(this, "About", "Mobile & Ubiquitous Computing\nAssignment 2 - Mimicry Game\n\nTheresa Hirzle\nSebastian Hardwig\nDavid Lehr");
         }
         return super.onOptionsItemSelected(item);
     }
@@ -209,6 +210,7 @@ public class MainActivity extends ActionBarActivity {
             };
 */
 
+    // Popup dialog for user messages
     public static void popupDialog(Context context, String title, String text) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(title);
@@ -286,7 +288,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
-    //GUI
+    // On click listener for start new game as Master
     public void clickStartNewGame(View view) {
         Intent intent = new Intent(getApplicationContext(), GameOverviewActivity.class);
         intent.putExtra(MASTER_KEY,true);

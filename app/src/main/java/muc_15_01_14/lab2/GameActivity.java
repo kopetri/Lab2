@@ -43,7 +43,7 @@ public class GameActivity extends ActionBarActivity {
     private boolean master;
     private String chooseGesture;
 
-    //create gestureListener
+    // Create gestureListener
     IBinder mGestureListenerStub =
             new IGestureRecognitionListener.Stub() {
                 @Override
@@ -73,7 +73,7 @@ public class GameActivity extends ActionBarActivity {
 
     private IGestureRecognitionService mRecService;
 
-    //create a service connection to the recognition service
+    // Create a service connection to the recognition service
     private final ServiceConnection mGestureConn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className,
@@ -101,10 +101,12 @@ public class GameActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
+        // Get data from previous activity
         if (getIntent().hasExtra(MainActivity.MASTER_KEY)) {
             master = getIntent().getBooleanExtra(MainActivity.MASTER_KEY, false);
         }
 
+        // Set GUI objects invisivle
         ((TextView) findViewById(R.id.txt_timeDifference)).setText("");
         ((Button) findViewById(R.id.btn_finishGame)).setVisibility(View.INVISIBLE);
         // ((Button) findViewById(R.id.btn_finishGame)).setEnabled(false);
@@ -112,8 +114,10 @@ public class GameActivity extends ActionBarActivity {
         // ((Button) findViewById(R.id.btn_nextRound)).setEnabled(false);
 
 
+        // Start random countdown
         if (master) {
-            Countdown((int) Math.ceil(Math.random() * 9 + 1));
+            Countdown((int) Math.ceil(Math.random() * 4 + 2));
+            // TODO send message to client - countdown time
         }
     }
 
@@ -125,6 +129,7 @@ public class GameActivity extends ActionBarActivity {
 
     }
 
+    // Countdown before executing the gesture
     private void Countdown(final int seconds) {
         ((TextView) findViewById(R.id.txt_result)).setText(Integer.toString(seconds));
         countDownTimer = new CountDownTimer(seconds * 1000, 100) {
@@ -142,8 +147,10 @@ public class GameActivity extends ActionBarActivity {
         countDownTimer.start();
     }
 
+    // Start the gesture Listener and choose Gesture
     private void startGame() {
         ((ImageView) findViewById(R.id.img_gesture)).setImageResource(chooseGesture());
+        // TODO commit chosen gesture to client
 
         Intent gestureBindIntent;
         Log.i("Version",Integer.toString(Build.VERSION.SDK_INT));
@@ -158,6 +165,7 @@ public class GameActivity extends ActionBarActivity {
     }
 
 
+    // Randomly choose a gesture
     private int chooseGesture() {
         int gesture = (int) Math.ceil(Math.random() * 7);
         switch (gesture) {
@@ -189,6 +197,7 @@ public class GameActivity extends ActionBarActivity {
 
     }
 
+    // Button listener for start next round
     public void click_nextRound(View view) {
 
         getIntent().putExtra(STATUS_KEY, "nextRound");
@@ -197,6 +206,7 @@ public class GameActivity extends ActionBarActivity {
         this.finish();
     }
 
+    // Button listener for finish the game
     public void click_finishGame(View view) {
 
         getIntent().putExtra(STATUS_KEY, "finishGame");
@@ -205,6 +215,7 @@ public class GameActivity extends ActionBarActivity {
         this.finish();
     }
 
+    // Key listener for Back-Button
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -220,12 +231,8 @@ public class GameActivity extends ActionBarActivity {
         return super.onKeyDown(keyCode, event);
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        analyseGesture(chooseGesture);
-        return super.onTouchEvent(event);
-    }
 
+    // Analyse incoming gesture whether it is correct or not
     private void analyseGesture(String gesture) {
         if (gesture.equals(chooseGesture)) {
             ((TextView) findViewById(R.id.txt_result)).setText("Wait...");
@@ -233,6 +240,7 @@ public class GameActivity extends ActionBarActivity {
             if (master) {
                 ((Button) findViewById(R.id.btn_finishGame)).setVisibility(View.VISIBLE);
                 ((Button) findViewById(R.id.btn_nextRound)).setVisibility(View.VISIBLE);
+                // TODO wait for client until response
             }
             unregisterGestureDetection();
         } else {
@@ -241,6 +249,7 @@ public class GameActivity extends ActionBarActivity {
         }
     }
 
+    // Unregister gesture detection
     private void unregisterGestureDetection() {
         try {
             if (mRecService != null) {
@@ -255,6 +264,7 @@ public class GameActivity extends ActionBarActivity {
         }
     }
 
+    // Change implicit Intent to explicit Intent
     public static Intent createExplicitFromImplicitIntent(Context context, Intent implicitIntent) {
         //Retrieve all services that can match the given intent
         PackageManager pm = context.getPackageManager();

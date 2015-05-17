@@ -6,27 +6,34 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.View;
 import android.widget.TextView;
 
 
 public class GameOverviewActivity extends ActionBarActivity {
 
+    // Intent for every single round
     private Intent gameRound;
+    // Bool whether master or client
     private boolean master;
+    // Bool for game finished
     private boolean gameFinished;
 
+    // Game data
     private int scoreMaster, scoreClient, currentRound;
     private String nameMaster, nameClient;
 
+    // Countdown fpr Get Ready
     private CountDownTimer countDownTimer;
 
+    // Request ID for Win or Lost
     public static int REQUEST_ID = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gameoverview);
+
+        // Get data from previous activity
         if (getIntent().hasExtra(MainActivity.MASTER_KEY)) {
             master = getIntent().getBooleanExtra(MainActivity.MASTER_KEY, false);
         }
@@ -39,6 +46,7 @@ public class GameOverviewActivity extends ActionBarActivity {
         scoreClient = scoreMaster = 0;
         currentRound = 1;
 
+        // Update data on screen
         updateDataOnScreen();
     }
 
@@ -47,7 +55,10 @@ public class GameOverviewActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
 
-        Log.i("GameOverviewActivity", "Resume");
+        ((TextView) findViewById(R.id.txt_countdownInt)).setText("Wait for challenger");
+
+        // TODO on challenger available
+        // Set countdown if game not finished yet
         if (!gameFinished) {
             ((TextView) findViewById(R.id.txt_countdownInt)).setText(Integer.toString(3));
             Countdown(3);
@@ -55,6 +66,7 @@ public class GameOverviewActivity extends ActionBarActivity {
     }
 
 
+    // Countdown for Get Ready
     private void Countdown(final int seconds) {
         ((TextView) findViewById(R.id.txt_countdownInt)).setText(Integer.toString(seconds));
         countDownTimer = new CountDownTimer(seconds * 1000, 100) {
@@ -72,27 +84,27 @@ public class GameOverviewActivity extends ActionBarActivity {
         countDownTimer.start();
     }
 
+    // Start new activity for game
     public void startRound() {
         gameRound = new Intent(getApplicationContext(), GameActivity.class);
         gameRound.putExtra(MainActivity.MASTER_KEY, master);
         startActivityForResult(gameRound, REQUEST_ID);
+        //TODO send message to client to start game
     }
 
 
-    public void click_leaveGame(View view) {
-        leaveGame();
-    }
-
+    // Listener for Back-Button
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            leaveGame();
+            exitGame();
             return true;
         }
         return super.onKeyDown(keyCode, event);
     }
 
-    private void leaveGame() {
+    // Action before exit the game
+    private void exitGame() {
         if (countDownTimer != null) {
             countDownTimer.cancel();
             countDownTimer = null;
@@ -101,6 +113,7 @@ public class GameOverviewActivity extends ActionBarActivity {
 
     }
 
+    // Update Data on Screen
     private void updateDataOnScreen() {
         ((TextView) findViewById(R.id.txt_nameMaster)).setText(nameMaster);
         ((TextView) findViewById(R.id.txt_nameClient)).setText(nameClient);
@@ -111,6 +124,7 @@ public class GameOverviewActivity extends ActionBarActivity {
     }
 
 
+    // Get data from GameActivity to decide kind of view and winner or looser
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_ID) {
@@ -158,6 +172,7 @@ public class GameOverviewActivity extends ActionBarActivity {
         }
     }
 
+    // Count the winner score
     private void roundWinner(Intent data) {
         String winner = data.getStringExtra(GameActivity.WINNER_KEY);
         if (winner.equals("master")) {
