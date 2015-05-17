@@ -37,7 +37,7 @@ public class MainActivity extends ActionBarActivity {
     public static  final String CLIENT_USER_KEY="clientname";
 
 
-    de.dfki.ccaal.gestures.IGestureRecognitionService mRecService;
+   // de.dfki.ccaal.gestures.IGestureRecognitionService mRecService;
     BluetoothAdapter mBtAdapter;
     private ArrayList mArrayAdapter;
     private static int BLUETOOTH_ENABLED = 14;
@@ -138,15 +138,15 @@ public class MainActivity extends ActionBarActivity {
         //Intent gestureBindIntent = new Intent("de.dfki.ccaal.gestures.GESTURE_RECOGNIZER");
 
         //explicit intent ( > Android 5.0)
-        Intent gestureBindIntent = new Intent(this, IGestureRecognitionService.class);
-        bindService(gestureBindIntent, mGestureConn, Context.BIND_AUTO_CREATE);
+        //Intent gestureBindIntent = new Intent(this, IGestureRecognitionService.class);
+        //bindService(gestureBindIntent, mGestureConn, Context.BIND_AUTO_CREATE);
     }
 
     //unbind service
     @Override
     protected void onPause() {
         super.onPause();
-        try {
+      /*  try {
             if (mRecService != null) {
                 mRecService.unregisterListener(IGestureRecognitionListener.
                         Stub.asInterface(mGestureListenerStub));
@@ -155,11 +155,11 @@ public class MainActivity extends ActionBarActivity {
             e.printStackTrace();
         }
         mRecService = null;
-        unbindService(mGestureConn);
+        unbindService(mGestureConn);*/
     }
 
     //create a service connection to the recognition service
-    private ServiceConnection mGestureConn = new ServiceConnection() {
+    /*private ServiceConnection mGestureConn = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
 
@@ -207,7 +207,7 @@ public class MainActivity extends ActionBarActivity {
 
                 }
             };
-
+*/
 
     public static void popupDialog(Context context, String title, String text) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);

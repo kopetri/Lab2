@@ -27,15 +27,18 @@ public class GameOverviewActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gameoverview);
-        if(getIntent().hasExtra(MainActivity.MASTER_KEY)){
-           master = getIntent().getBooleanExtra(MainActivity.MASTER_KEY,false);
+        if (getIntent().hasExtra(MainActivity.MASTER_KEY)) {
+            master = getIntent().getBooleanExtra(MainActivity.MASTER_KEY, false);
         }
-        if(getIntent().hasExtra(MainActivity.MASTER_USER_KEY)){
-            nameMaster =  getIntent().getStringExtra(MainActivity.MASTER_USER_KEY);
+        if (getIntent().hasExtra(MainActivity.MASTER_USER_KEY)) {
+            nameMaster = getIntent().getStringExtra(MainActivity.MASTER_USER_KEY);
         }
-        if(getIntent().hasExtra(MainActivity.CLIENT_USER_KEY)){
-            nameClient =  getIntent().getStringExtra(MainActivity.CLIENT_USER_KEY);
+        if (getIntent().hasExtra(MainActivity.CLIENT_USER_KEY)) {
+            nameClient = getIntent().getStringExtra(MainActivity.CLIENT_USER_KEY);
         }
+        scoreClient = scoreMaster = 0;
+        currentRound = 1;
+
         updateDataOnScreen();
     }
 
@@ -45,7 +48,7 @@ public class GameOverviewActivity extends ActionBarActivity {
         super.onResume();
 
         Log.i("GameOverviewActivity", "Resume");
-        if(!gameFinished) {
+        if (!gameFinished) {
             ((TextView) findViewById(R.id.txt_countdownInt)).setText(Integer.toString(3));
             Countdown(3);
         }
@@ -54,7 +57,7 @@ public class GameOverviewActivity extends ActionBarActivity {
 
     private void Countdown(final int seconds) {
         ((TextView) findViewById(R.id.txt_countdownInt)).setText(Integer.toString(seconds));
-       countDownTimer = new CountDownTimer(seconds * 1000, 100) {
+        countDownTimer = new CountDownTimer(seconds * 1000, 100) {
             @Override
             public void onTick(long l) {
                 ((TextView) findViewById(R.id.txt_countdownInt)).setText(Integer.toString((int) Math.ceil(l / 1000f)));
@@ -71,7 +74,7 @@ public class GameOverviewActivity extends ActionBarActivity {
 
     public void startRound() {
         gameRound = new Intent(getApplicationContext(), GameActivity.class);
-        gameRound.putExtra(MainActivity.MASTER_KEY,master);
+        gameRound.putExtra(MainActivity.MASTER_KEY, master);
         startActivityForResult(gameRound, REQUEST_ID);
     }
 
@@ -90,9 +93,9 @@ public class GameOverviewActivity extends ActionBarActivity {
     }
 
     private void leaveGame() {
-        if(countDownTimer!=null){
+        if (countDownTimer != null) {
             countDownTimer.cancel();
-            countDownTimer=null;
+            countDownTimer = null;
         }
         this.finish();
 
@@ -121,23 +124,23 @@ public class GameOverviewActivity extends ActionBarActivity {
 
                             break;
                         case "finishGame":
-                           gameFinished = true;
+                            gameFinished = true;
                             roundWinner(data);
                             ((TextView) findViewById(R.id.txt_headline1)).setText("Result");
-                            if(master){
-                                if(scoreMaster>scoreClient){
+                            if (master) {
+                                if (scoreMaster > scoreClient) {
                                     ((TextView) findViewById(R.id.txt_countdownInt)).setText("Winner");
-                                }else  if(scoreMaster<scoreClient){
+                                } else if (scoreMaster < scoreClient) {
                                     ((TextView) findViewById(R.id.txt_countdownInt)).setText("Looser");
-                                }else{
+                                } else {
                                     ((TextView) findViewById(R.id.txt_countdownInt)).setText("Draw");
                                 }
-                            }else{
-                                if(scoreMaster<scoreClient){
+                            } else {
+                                if (scoreMaster < scoreClient) {
                                     ((TextView) findViewById(R.id.txt_countdownInt)).setText("Winner");
-                                }else  if(scoreMaster>scoreClient){
+                                } else if (scoreMaster > scoreClient) {
                                     ((TextView) findViewById(R.id.txt_countdownInt)).setText("Looser");
-                                }else{
+                                } else {
                                     ((TextView) findViewById(R.id.txt_countdownInt)).setText("Draw");
                                 }
                             }
@@ -155,7 +158,7 @@ public class GameOverviewActivity extends ActionBarActivity {
         }
     }
 
-    private void roundWinner(Intent data){
+    private void roundWinner(Intent data) {
         String winner = data.getStringExtra(GameActivity.WINNER_KEY);
         if (winner.equals("master")) {
             scoreMaster++;
