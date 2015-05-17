@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">Lab2</string>
+    <string name="app_name">Mimicry Game</string>
+    <string name="action_info">Über</string>
 
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
 </resources>
