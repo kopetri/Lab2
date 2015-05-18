@@ -2,7 +2,13 @@ package muc_15_01_14.lab2;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.util.Log;
+import android.widget.EditText;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -10,28 +16,72 @@ import java.util.UUID;
 /**
  * Created by Sebastian on 15.05.2015.
  */
-public class ConnectThread extends Thread {
-    private BluetoothSocket mSocket;
+public class ConnectThread extends AsyncTask<BluetoothSocket,Void,Boolean> {
+
+
+    private BluetoothSocket mSocket = null;
     private BluetoothDevice mServerDevice;
     private BluetoothAdapter mBtAdapter;
-    public ConnectThread(BluetoothAdapter mBtAdapter,BluetoothDevice serverDevice) throws IOException {
-        mServerDevice = serverDevice;
+    private boolean executing = false;
+    private MainActivity context = null;
+
+
+    public ConnectThread(MainActivity context, BluetoothAdapter mBtAdapter){
         this.mBtAdapter = mBtAdapter;
-        // Get a BluetoothSocket to connect with the server device
-        // APP_UUID is the app's UUID string, also used by the server code
-        mSocket = serverDevice.createRfcommSocketToServiceRecord(UUID.fromString("4080ad8d-8ba2-4846-8803-a3206a8975be"));
+        this.context = context;
     }
-    public void run() {
-        // Cancel discovery because it will slow down the connection
-        mBtAdapter.cancelDiscovery();
-        // Connect the device through the socket (SDP lookup for UUID)
-        // This will block until it succeeds or fails
+
+    public BluetoothSocket getmSocket(BluetoothDevice mServerDevice) {
+        this.mServerDevice = mServerDevice;
         try {
-            mSocket.connect();
+            mSocket = mServerDevice.createRfcommSocketToServiceRecord(UUID.fromString(MainActivity.UUID));
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // Do work to manage the connection (in a separate thread)
-        //manageConnectedSocket(mSocket);
+        return mSocket;
+    }
+    public boolean isExecuting() {
+        return executing;
+    }
+
+    @Override
+    protected Boolean doInBackground(BluetoothSocket[] params) {
+        executing = true;
+        mBtAdapter.cancelDiscovery();
+        try {
+            if(params[0] != null) {
+                params[0].connect();
+                return params[0].isConnected();
+            } else {
+                return false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    protected void onPostExecute(Boolean b) {
+        if(b){
+            clientConnected();
+            Log.i("BLUETOOTH", "connection established!");
+        } else{
+            Log.e("BLUETOOTH","connection error!");
+        }
+        executing = false;
+
+    }
+    public void clientConnected(){
+        MainActivity.mSocket = mSocket;
+        Intent intent = new Intent(context.getApplicationContext(), GameOverviewActivity.class);
+        intent.putExtra(MainActivity.MASTER_KEY,false);
+        intent.putExtra(MainActivity.MASTER_USER_KEY,"Challenger");
+        String name = ((EditText)context.findViewById(R.id.etxt_username)).getText().toString();
+        if(name.trim().equals("")){
+            name = "You";
+        }
+        intent.putExtra(MainActivity.CLIENT_USER_KEY,name);
+        context.startActivity(intent);
     }
 }

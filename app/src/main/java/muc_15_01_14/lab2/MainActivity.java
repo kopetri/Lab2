@@ -41,28 +41,36 @@ public class MainActivity extends ActionBarActivity  {
     public static final String MASTER_KEY="ismaster";
     public static  final String MASTER_USER_KEY="mastername";
     public static  final String CLIENT_USER_KEY="clientname";
+    public static final String UUID = "4080ad8d-8ba2-4846-8803-a3206a8975be";
 
     de.dfki.ccaal.gestures.IGestureRecognitionService mRecService;
     BluetoothAdapter mBtAdapter;
-    private ArrayList mArrayAdapter;
     private static int BLUETOOTH_ENABLED = 14;
     private final IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-    private AcceptThread acceptThread = new AcceptThread("MUCmimic","4080ad8d-8ba2-4846-8803-a3206a8975be");
+    private AcceptThread acceptThread = null;
+    private ConnectThread connectThread = null;
+
+    public void setmSocket(BluetoothSocket mSocket) {
+        this.mSocket = mSocket;
+    }
+
+    public static BluetoothSocket mSocket = null;
 
     //Variables for client representation on Gui
     private ListView availableDevicesList;
-    private ArrayList<String> availableDevicesStringArray;
-    private ArrayAdapter<String> availableDevicesAdapter;
+    private ArrayList<BluetoothDevice> availableDevicesStringArray = new ArrayList<BluetoothDevice>();
+    private ArrayAdapter<BluetoothDevice> availableDevicesAdapter;
+
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if(BluetoothDevice.ACTION_FOUND.equals(action)){
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                mArrayAdapter.add(device.getName()+"\n"+device.getAddress());
-
-                //Log.i("BLUETOOTH", "device " + device.getName() + " address " + device.getAddress());
-
+                Log.i("BLUETOOTH","device: " + device.getName()+" address: "+device.getAddress());
+                availableDevicesStringArray.add(device);
+                availableDevicesAdapter = new ArrayAdapter<BluetoothDevice>(getApplicationContext(), android.R.layout.simple_list_item_1, availableDevicesStringArray);
+                availableDevicesList.setAdapter(availableDevicesAdapter);
             }
         }
     };
@@ -74,8 +82,10 @@ public class MainActivity extends ActionBarActivity  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mArrayAdapter = new ArrayList();
         setContentView(R.layout.activity_main);
+
+
+
         // Client list an on click listener for the clients
         availableDevicesList = (ListView) findViewById(R.id.list_availableDevices);
         availableDevicesList.setClickable(true);
@@ -83,39 +93,25 @@ public class MainActivity extends ActionBarActivity  {
 
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
-                Log.i("Clicked Item", "" + position);
-                Intent intent = new Intent(getApplicationContext(), GameOverviewActivity.class);
-                intent.putExtra(MASTER_KEY,false);
-                intent.putExtra(MASTER_USER_KEY,"Challenger");
-                String name = ((EditText)findViewById(R.id.etxt_username)).getText().toString();
-                if(name.trim().equals("")){
-                    name = "You";
-                }
-                intent.putExtra(CLIENT_USER_KEY,name);
-                startActivity(intent);
+                // establish bluetooth connection
+                BluetoothDevice device = (BluetoothDevice) arg0.getAdapter().getItem(position);
+                Log.i("BLUETOOTH","device: "+device.getName());
+
+                    if(!connectThread.isExecuting()) {
+                        connectThread.execute(connectThread.getmSocket(device));
+                    }
+
             }
         });
         Button startServer = (Button) findViewById(R.id.btn_startNewGame);
         startServer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!acceptThread.isAlive()){
-                    acceptThread.start();
-                } else{
-                    Log.i("BLUETOOTH","thread is alive");
+                if(!acceptThread.isExecuting()) {
+                    acceptThread.execute(acceptThread.getMmServerSocket());
                 }
             }
         });
-
-        availableDevicesStringArray = new ArrayList<String>();
-        // two test devices
-        for (int i = 0; i < 2; i++) {
-            availableDevicesStringArray.add("Device: " + i);
-        }
-        availableDevicesAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, availableDevicesStringArray);
-        availableDevicesList.setAdapter(availableDevicesAdapter);
-
-
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBtAdapter == null) {
             popupDialog(this, "Fehler", "Kein Bluetooth verfügbar");
@@ -134,16 +130,23 @@ public class MainActivity extends ActionBarActivity  {
         Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
         startActivity(discoverableIntent);
-        if (mBtAdapter.isDiscovering()) {
-            Log.i("BLUETOOTH", "is Discovering");
-        } else {
-            Log.i("BLUETOOTH", "is not Discovering");
-        }
+        acceptThread = new AcceptThread(this,mBtAdapter,"MUCmimic",UUID);
+        connectThread = new ConnectThread(this,mBtAdapter);
     }
 
+
+
     public void manageConnectedSocket(BluetoothSocket socket){
-        Log.i("BLUETOOTH","socket returned - pairing done");
-        popupDialog(this,"Paired","Pairing done!");
+        setmSocket(socket);
+        Intent intent = new Intent(getApplicationContext(), GameOverviewActivity.class);
+        intent.putExtra(MainActivity.MASTER_KEY,true);
+        intent.putExtra(MainActivity.MASTER_USER_KEY,"Master");
+        String name = ((EditText)findViewById(R.id.etxt_username)).getText().toString();
+        if(name.trim().equals("")){
+            name = "You";
+        }
+        intent.putExtra(MainActivity.CLIENT_USER_KEY,name);
+        startActivity(intent);
     }
 
     @Override
@@ -171,19 +174,13 @@ public class MainActivity extends ActionBarActivity  {
     @Override
     protected void onResume() {
         super.onResume();
-
+        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        registerReceiver(mReceiver, filter);
         if(mBtAdapter!=null) {
             if(!mBtAdapter.isDiscovering()) {
                 mBtAdapter.startDiscovery();
             }
         }
-        //implicit intent ( < Android 5.0 )
-        //Intent gestureBindIntent = new Intent("de.dfki.ccaal.gestures.GESTURE_RECOGNIZER");
-
-        //explicit intent ( > Android 5.0)
-        Intent gestureBindIntent = new Intent(this,IGestureRecognitionService.class);
-        bindService(gestureBindIntent,mGestureConn,Context.BIND_AUTO_CREATE);
-        registerReceiver(mReceiver,filter);
     }
 
     //unbind service
@@ -199,69 +196,9 @@ public class MainActivity extends ActionBarActivity  {
         if(mReceiver != null){
             unregisterReceiver(mReceiver);
         }
-        try {
-            if (mRecService != null) {
-                mRecService.unregisterListener(IGestureRecognitionListener.
-                        Stub.asInterface(mGestureListenerStub));
-            }
-        } catch (android.os.RemoteException e) {
-            e.printStackTrace();
-        }
+
         mRecService = null;
-        unbindService(mGestureConn);
     }
-
-    //create a service connection to the recognition service
-    private ServiceConnection mGestureConn = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            mRecService =
-                    IGestureRecognitionService.Stub.asInterface(service);
-            try {
-                mRecService.registerListener(
-                        IGestureRecognitionListener.Stub.asInterface(
-                                mGestureListenerStub));
-                mRecService.startClassificationMode("muc");
-            } catch (android.os.RemoteException e) {
-                e.printStackTrace();
-            }
-        }
-    };
-
-    //create gestureListener
-    IBinder mGestureListenerStub =
-            new IGestureRecognitionListener.Stub() {
-                @Override
-                public void onGestureRecognized(Distribution distr) {
-                    final String gesture = distr.getBestMatch();
-                    final double distance = distr.getBestDistance();
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            //TextView text = (TextView) findViewById(R.id.text_gesture);
-                            //text.setText(gesture + " " + String.valueOf(distance));
-                        }
-                    });
-
-                }
-
-                @Override
-                public void onGestureLearned(String gestureName) throws RemoteException {
-
-                }
-
-                @Override
-                public void onTrainingSetDeleted(String trainingSet) throws RemoteException {
-
-                }
-            };
-
 
     public static void popupDialog(Context context, String title, String text) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -303,59 +240,10 @@ public class MainActivity extends ActionBarActivity  {
         startActivity(intent);
     }
 
-
-    public void find_Devices(View view) {
-        mArrayAdapter = new ArrayList();
-
-        Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
-
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-
-                System.out.println(device.getAddress());
-                System.out.println(device.getName());
-                System.out.println(device.getUuids());
-
-            }
-
-        }
-
-        /*BroadcastReceiver mReceiver = new BroadcastReceiver() {
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-
-                if (BluetoothDevice.ACTION_FOUND.equals(action))
-                {
-                    // Get the BluetoothDevice object from the Intent
-                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    // Add the name and address to an array adapter to show in a ListView
-                    mArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-                }
-            }
-        };
-
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(mReceiver, filter);
-
-        mBtAdapter.startDiscovery();*/
-
-
-        StringBuilder sb = new StringBuilder();
-
-        Log.i("Info", "Bluetoothgeräte Anzahl: " + String.valueOf(mArrayAdapter.size()));
-
-
-        for (int i = 0; i < mArrayAdapter.size(); i++) {
-            Log.i("Available Device", mArrayAdapter.get(i).toString());
-        }
-
-
-    }
-
-    public void addAvailableDevices(List availableDevices) {
+    /*public void addAvailableDevices(List availableDevices) {
         for (int i = 0; i < availableDevices.size(); i++) {
-            availableDevicesStringArray.add(availableDevices.toString());
+            availableDevicesStringArray.add(availableDevices);
         }
         availableDevicesAdapter.notifyDataSetChanged();
-    }
+    }*/
 }

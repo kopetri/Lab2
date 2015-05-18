@@ -1,6 +1,7 @@
 package muc_15_01_14.lab2;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothSocket;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -19,6 +20,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.List;
 import de.dfki.ccaal.gestures.Distribution;
 import de.dfki.ccaal.gestures.IGestureRecognitionListener;
@@ -33,6 +40,8 @@ public class GameActivity extends ActionBarActivity {
     private CountDownTimer countDownTimer;
     private boolean master;
     private String chooseGesture;
+    private InputStream in = null;
+    private OutputStream out = null;
 
     // Create gestureListener
     IBinder mGestureListenerStub =
@@ -92,10 +101,22 @@ public class GameActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
+        try {
+            in = MainActivity.mSocket.getInputStream();
+            out = MainActivity.mSocket.getOutputStream();
+            if(in == null || out == null){
+                finish();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Log.i("BLUETOOTH","isConnected: "+MainActivity.mSocket.isConnected());
         // Get data from previous activity
         if (getIntent().hasExtra(MainActivity.MASTER_KEY)) {
             master = getIntent().getBooleanExtra(MainActivity.MASTER_KEY, false);
         }
+
 
         // Set GUI objects invisivle
         ((TextView) findViewById(R.id.txt_timeDifference)).setText("");
@@ -107,8 +128,36 @@ public class GameActivity extends ActionBarActivity {
 
         // Start random countdown
         if (master) {
-            Countdown((int) Math.ceil(Math.random() * 4 + 2));
-            // TODO send message to client - countdown time
+            int millisec = (int) Math.ceil(Math.random() * 4 + 2);
+            String s = "time:"+String.valueOf(millisec);
+            try {
+                out.write(Byte.parseByte(s));
+                out.flush();
+                Log.i("BLUETOOTH", "bytes written: " + s);
+                Countdown(millisec);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else{
+
+            // when client connected
+            // ...
+            // TODO read from inputstream
+
+            byte[] buffer = new byte[1024];  // buffer store for the stream
+            int bytes; // bytes returned from read()
+
+            // Keep listening to the InputStream until an exception occurs
+            while (true) {
+                try {
+                    // Read from the InputStream
+                    bytes = in.read(buffer);
+                    // Send the obtained bytes to the UI activity
+                    /*mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();*/
+                } catch (IOException e) {
+                    break;
+                }
+            }
         }
     }
 
@@ -142,6 +191,7 @@ public class GameActivity extends ActionBarActivity {
     private void startGame() {
         ((ImageView) findViewById(R.id.img_gesture)).setImageResource(chooseGesture());
         // TODO commit chosen gesture to client
+
 
         Intent gestureBindIntent;
         Log.i("Version",Integer.toString(Build.VERSION.SDK_INT));
